@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Laptop Price Predictor – AI Powered</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+  <style>
+    /* =============================================
+       CSS RESET & ROOT VARIABLES
+    ============================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep:    #050a18;
+      --bg-mid:     #0b1428;
+      --accent-1:   #3b82f6;   /* electric blue */
+      --accent-2:   #06b6d4;   /* cyan */
+      --accent-3:   #8b5cf6;   /* violet */
+      --text-primary:   #f0f4ff;
+      --text-secondary: #94a3b8;
+      --glass-bg:   rgba(255,255,255,0.05);
+      --glass-border: rgba(255,255,255,0.10);
+      --glass-hover: rgba(255,255,255,0.09);
+      --radius-lg:  20px;
+      --radius-md:  12px;
+      --shadow-glow: 0 0 40px rgba(59,130,246,0.18);
+      --font-display: 'Syne', sans-serif;
+      --font-body:    'DM Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+body
+     {
+      font-family: var(--font-body);
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* =============================================
+       MESH GRADIENT BACKGROUND
+    ============================================= */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%,  rgba(59,130,246,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%,  rgba(139,92,246,0.15) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 60% 30%,  rgba(6,182,212,0.10)  0%, transparent 50%),
+        var(--bg-deep);
+      pointer-events: none;
+    }
+
+    /* =============================================
+       NOISE TEXTURE OVERLAY
+    ============================================= */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    main, nav, footer, section { position: relative; z-index: 1; }
+
+    /* =============================================
+       UTILITY
+    ============================================= */
+    .container {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .glass {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* =============================================
+       NAVBAR
+    ============================================= */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 18px 0;
+      transition: background 0.4s, box-shadow 0.4s, padding 0.4s;
+    }
+
+    nav.scrolled {
+      background: rgba(5,10,24,0.82);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--glass-border);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      padding: 12px 0;
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .nav-logo .logo-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 4px 16px rgba(59,130,246,0.35);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 0.92rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      position: relative;
+      transition: color 0.25s;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 0;
+      width: 0; height: 1.5px;
+      background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+      transition: width 0.3s ease;
+      border-radius: 2px;
+    }
+
+    .nav-links a:hover { color: var(--text-primary); }
+    .nav-links a:hover::after { width: 100%; }
+
+    /* hamburger */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px;
+    }
+    .hamburger span {
+      display: block;
+      width: 24px; height: 2px;
+      background: var(--text-primary);
+      border-radius: 2px;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      background: rgba(5,10,24,0.96);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 12px 24px 20px;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 1rem;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--glass-border);
+      transition: color 0.2s;
+    }
+    .mobile-menu a:last-child { border-bottom: none; }
+    .mobile-menu a:hover { color: var(--text-primary); }
+
+    /* =============================================
+       HERO SECTION
+    ============================================= */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 80px 0 80px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(59,130,246,0.12);
+      border: 1px solid rgba(59,130,246,0.25);
+      border-radius: 50px;
+      padding: 6px 16px;
+      font-size: 0.80rem;
+      font-weight: 500;
+      color: var(--accent-2);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      animation: fadeUp 0.8s ease both;
+    }
+
+    .hero-badge .dot {
+      width: 7px; height: 7px;
+      background: var(--accent-2);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity:1; transform: scale(1); }
+      50%      { opacity:0.5; transform: scale(0.8); }
+    }
+
+    .hero-heading {
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 4vw, 2.8rem);
+      font-weight: 800;
+      line-height: 1.10;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+      animation: fadeUp 0.8s 0.1s ease both;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      max-width: 480px;
+      line-height: 1.75;
+      margin-bottom: 30px;
+      animation: fadeUp 0.8s 0.2s ease both;
+      font-weight: 300;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      animation: fadeUp 0.8s 0.3s ease both;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 32px;
+      border-radius: 50px;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+      color: #fff;
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 0.95rem;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 6px 28px rgba(59,130,246,0.38);
+      transition: transform 0.25s, box-shadow 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(59,130,246,0.50); }
+    .btn-primary:hover::before { opacity: 1; }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 32px;
+      border-radius: 50px;
+      background: transparent;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 0.95rem;
+      text-decoration: none;
+      border: 1px solid var(--glass-border);
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: border-color 0.25s, background 0.25s, transform 0.25s;
+    }
+    .btn-secondary:hover {
+      border-color: rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.06);
+      transform: translateY(-3px);
+    }
+
+    /* Floating Laptop Illustration */
+    .hero-visual {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeUp 0.9s 0.4s ease both;
+    }
+
+    .laptop-wrap {
+      position: relative;
+      width: 90%;
+      max-width: 460px;
+    }
+
+    /* Glow rings */
+    .glow-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(59,130,246,0.15);
+      animation: ringPulse 4s ease-in-out infinite;
+    }
+    .glow-ring:nth-child(1) { inset: -12px; animation-delay: 0s; }
+    .glow-ring:nth-child(2) { inset: -32px; animation-delay: 0.8s; opacity:0.6; }
+    .glow-ring:nth-child(3) { inset: -55px; animation-delay: 1.6s; opacity:0.3; }
+
+    @keyframes ringPulse {
+      0%,100% { transform: scale(1); opacity: inherit; }
+      50%      { transform: scale(1.04); }
+    }
+
+    .laptop-svg-container {
+      position: relative;
+      z-index: 2;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-18px); }
+    }
+
+    .laptop-svg-container svg {
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 30px 60px rgba(59,130,246,0.25));
+    }
+
+    /* Floating data chips */
+    .chip {
+      position: absolute;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(12px);
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-primary);
+      white-space: nowrap;
+      z-index: 3;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    .chip-icon { font-size: 1rem; }
+
+    .chip-1 {
+      top: 8%; right: -10%;
+      animation: chipFloat 5s 0.5s ease-in-out infinite;
+    }
+    .chip-2 {
+      bottom: 18%; left: -12%;
+      animation: chipFloat 5s 1.5s ease-in-out infinite;
+    }
+    .chip-3 {
+      bottom: 5%; right: 5%;
+      animation: chipFloat 5s 2s ease-in-out infinite;
+    }
+
+    @keyframes chipFloat {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-8px); }
+    }
+
+    /* Stats row */
+    .hero-stats {
+      display: flex;
+      gap: 40px;
+      margin-top: 36px;
+      animation: fadeUp 0.8s 0.45s ease both;
+    }
+    .stat-item { display: flex; flex-direction: column; gap: 2px; }
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+      letter-spacing: 0.03em;
+    }
+
+    
+    /* =============================================
+       FOOTER
+    ============================================= */
+    footer {
+      padding: 48px 0 36px;
+      border-top: 1px solid var(--glass-border);
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .footer-logo-icon {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+
+    .footer-brand-name {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .footer-copy {
+      font-size: 0.80rem;
+      color: var(--text-secondary);
+      opacity: 0.7;
+    }
+
+    /* =============================================
+       ANIMATIONS (scroll reveal)
+    ============================================= */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(32px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(36px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.10s; }
+    .reveal-delay-2 { transition-delay: 0.20s; }
+    .reveal-delay-3 { transition-delay: 0.30s; }
+    .reveal-delay-4 { transition-delay: 0.40s; }
+
+    /* =============================================
+       SCROLLBAR
+    ============================================= */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.35); border-radius: 4px; }
+
+    /* =============================================
+       RESPONSIVE
+    ============================================= */
+    @media (max-width: 1024px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 48px;
+        text-align: center;
+      }
+      .hero-sub { max-width: 100%; }
+      .hero-buttons { justify-content: center; }
+      .hero-stats { justify-content: center; }
+      .hero-visual { order: -1; }
+      .chip-1 { right: 0; }
+      .chip-2 { left: 0; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .steps-grid::before { display: none; }
+      .nav-links, .nav-cta { display: none; }
+      .hamburger { display: flex; }
+      .footer-inner { flex-direction: column; align-items: flex-start; gap: 18px; }
+      .cta-box { padding: 52px 28px; }
+    }
+
+    @media (max-width: 480px) {
+      .features-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =============================================
+       NAVBAR
+  ============================================= -->
+  <nav id="navbar">
+    <div class="container">
+      <div class="nav-inner">
+        <!-- Logo -->
+        <a href="#" class="nav-logo">
+          <div class="logo-icon">💻</div>
+          Laptop Price Predictor
+        </a>
+
+        <!-- Desktop links -->
+        <ul class="nav-links">
+          <li><a href="/">Home</a></li>
+          <li><a href="/features">Features</a></li>
+          <li><a href="/how to work">How It Works</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+
+        <!-- Hamburger -->
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+
+      <!-- Mobile menu -->
+      <div class="mobile-menu" id="mobileMenu">
+        <a href="/"     onclick="closeMobile()">Home</a>
+        <a href="/features" onclick="closeMobile()">Features</a>
+        <a href="/how to work"      onclick="closeMobile()">How It Works</a>
+        <a href="/contact"      onclick="closeMobile()">Try Predictor</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- =============================================
+         HERO
+    ============================================= -->
+    <section id="hero">
+      <div class="container">
+        <div class="hero-grid">
+
+          <!-- Left: Text -->
+          <div class="hero-content">
+            <div class="hero-badge">
+              <span class="dot"></span>
+              AI-Powered · Machine Learning
+            </div>
+
+            <h1 class="hero-heading">
+              Predict Laptop Prices<br>
+              <span class="gradient-text">Instantly Using AI</span>
+            </h1>
+
+            <p class="hero-sub">
+              Our intelligent ML model analyzes thousands of laptop configurations
+              to give you accurate, real-time price predictions. Just enter the specs
+              — we handle the rest.
+            </p>
+
+            <div class="hero-buttons">
+              <a href="/predict" class="btn-primary">
+                <span>🚀</span> Predict Now
+              </a>
+              <a href="/how to work" class="btn-secondary">
+                <span>▶</span> Learn More
+              </a>
+            </div>
+
+            <div class="hero-stats">
+              <div class="stat-item">
+                <span class="stat-num">97%</span>
+                <span class="stat-label">Accuracy Rate</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-num">&lt;1s</span>
+                <span class="stat-label">Prediction Speed</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-num">50K+</span>
+                <span class="stat-label">Models Trained</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Illustration -->
+          <div class="hero-visual">
+            <div class="laptop-wrap">
+              <!-- Glow rings -->
+              <div class="glow-ring"></div>
+              <div class="glow-ring"></div>
+              <div class="glow-ring"></div>
+
+              <!-- SVG Laptop -->
+              <div class="laptop-svg-container">
+                <svg viewBox="0 0 480 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Base / bottom -->
+                  <rect x="30" y="270" width="420" height="18" rx="9"
+                        fill="url(#baseGrad)" opacity="0.9"/>
+                  <!-- Keyboard area -->
+                  <rect x="50" y="210" width="380" height="64" rx="8"
+                        fill="url(#bodyGrad)"/>
+                  <!-- Trackpad -->
+                  <rect x="185" y="228" width="110" height="32" rx="5"
+                        fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+                  <!-- Keyboard rows -->
+                  <g opacity="0.35" fill="rgba(255,255,255,0.8)">
+                    <!-- Row 1 -->
+                    <rect x="65"  y="218" width="18" height="7" rx="2"/>
+                    <rect x="88"  y="218" width="18" height="7" rx="2"/>
+                    <rect x="111" y="218" width="18" height="7" rx="2"/>
+                    <rect x="134" y="218" width="18" height="7" rx="2"/>
+                    <rect x="157" y="218" width="18" height="7" rx="2"/>
+                    <rect x="180" y="218" width="28" height="7" rx="2"/>
+                    <rect x="213" y="218" width="18" height="7" rx="2"/>
+                    <rect x="236" y="218" width="18" height="7" rx="2"/>
+                    <rect x="259" y="218" width="18" height="7" rx="2"/>
+                    <rect x="282" y="218" width="18" height="7" rx="2"/>
+                    <rect x="305" y="218" width="18" height="7" rx="2"/>
+                    <rect x="328" y="218" width="30" height="7" rx="2"/>
+                    <rect x="363" y="218" width="18" height="7" rx="2"/>
+                    <rect x="386" y="218" width="18" height="7" rx="2"/>
+                  </g>
+
+                  <!-- Screen lid -->
+                  <rect x="52" y="24" width="376" height="190" rx="12"
+                        fill="url(#screenBodyGrad)"/>
+                  <!-- Screen bezel inner -->
+                  <rect x="62" y="34" width="356" height="170" rx="8"
+                        fill="#050a18"/>
+                  <!-- Screen glow -->
+                  <rect x="66" y="38" width="348" height="162" rx="6"
+                        fill="url(#screenGrad)"/>
+
+                  <!-- Screen content: simulated UI -->
+                  <!-- Top bar -->
+                  <rect x="66" y="38" width="348" height="22" rx="6"
+                        fill="rgba(255,255,255,0.05)"/>
+                  <circle cx="82"  cy="49" r="5" fill="rgba(255,100,100,0.7)"/>
+                  <circle cx="96"  cy="49" r="5" fill="rgba(255,200,0,0.7)"/>
+                  <circle cx="110" cy="49" r="5" fill="rgba(0,200,100,0.7)"/>
+
+                  <!-- Chart bars on screen -->
+                  <rect x="100" y="130" width="20" height="55" rx="4" fill="rgba(59,130,246,0.60)"/>
+                  <rect x="128" y="110" width="20" height="75" rx="4" fill="rgba(6,182,212,0.60)"/>
+                  <rect x="156" y="95"  width="20" height="90" rx="4" fill="rgba(59,130,246,0.80)"/>
+                  <rect x="184" y="115" width="20" height="70" rx="4" fill="rgba(6,182,212,0.50)"/>
+                  <rect x="212" y="85"  width="20" height="100" rx="4" fill="rgba(139,92,246,0.70)"/>
+                  <rect x="240" y="108" width="20" height="77"  rx="4" fill="rgba(59,130,246,0.60)"/>
+                  <rect x="268" y="122" width="20" height="63"  rx="4" fill="rgba(6,182,212,0.55)"/>
+                  <rect x="296" y="93"  width="20" height="92"  rx="4" fill="rgba(59,130,246,0.75)"/>
+                  <rect x="324" y="105" width="20" height="80"  rx="4" fill="rgba(139,92,246,0.60)"/>
+                  <rect x="352" y="118" width="20" height="67"  rx="4" fill="rgba(6,182,212,0.65)"/>
+
+                  <!-- Price label on screen -->
+                  <rect x="154" y="68" width="132" height="22" rx="5"
+                        fill="rgba(59,130,246,0.20)"
+                        stroke="rgba(59,130,246,0.35)" stroke-width="1"/>
+                  <text x="220" y="83" font-family="monospace" font-size="10"
+                        fill="rgba(147,197,253,1)" text-anchor="middle">₹ 72,499 predicted</text>
+
+                  <!-- Camera dot -->
+                  <circle cx="240" cy="30" r="3" fill="rgba(255,255,255,0.20)"/>
+
+                  <!-- Hinge line -->
+                  <line x1="50" y1="212" x2="430" y2="212"
+                        stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
+
+                  <!-- Gradients -->
+                  <defs>
+                    <linearGradient id="baseGrad" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%"   stop-color="#1e3a5f"/>
+                      <stop offset="100%" stop-color="#0f2040"/>
+                    </linearGradient>
+                    <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"   stop-color="#1a3256"/>
+                      <stop offset="100%" stop-color="#0d1f3c"/>
+                    </linearGradient>
+                    <linearGradient id="screenBodyGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"   stop-color="#1e3a60"/>
+                      <stop offset="100%" stop-color="#0d2040"/>
+                    </linearGradient>
+                    <linearGradient id="screenGrad" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%"   stop-color="#060e1e"/>
+                      <stop offset="100%" stop-color="#0b1a38"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+
+              <!-- Floating chips -->
+              <div class="chip chip-1">
+                <span class="chip-icon">🧠</span>
+                ML Model Active
+              </div>
+              <div class="chip chip-2">
+                <span class="chip-icon">📊</span>
+                97.4% Accuracy
+              </div>
+              <div class="chip chip-3">
+                <span class="chip-icon">⚡</span>
+                0.3s Result
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- =============================================
+       FOOTER
+  ============================================= -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+
+        <!-- Brand -->
+        <a href="#" class="footer-brand">
+          <div class="footer-logo-icon">💻</div>
+          <span class="footer-brand-name">Laptop Price Predictor</span>
+        </a>
+
+        <!-- Copyright -->
+        <p class="footer-copy">© Laptop Price Predictor. Built with ❤️ &amp; ML.</p>
+
+      </div>
+    </div>
+  </footer>
+
+  <!-- =============================================
+       JAVASCRIPT
+  ============================================= -->
+  <script>
+    /* --- Sticky Navbar --- */
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 30);
+    });
+
+    /* --- Mobile Menu Toggle --- */
+    const hamburger  = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    hamburger.addEventListener('click', () => {
+      mobileMenu.classList.toggle('open');
+    });
+
+    function closeMobile() {
+      mobileMenu.classList.remove('open');
+    }
+
+    /* --- Scroll Reveal --- */
+    const revealEls = document.querySelectorAll('.reveal');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target); // fire once
+        }
+      });
+    }, { threshold: 0.12 });
+
+    revealEls.forEach(el => observer.observe(el));
+
+    /* --- Smooth scroll for anchor links --- */
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    /* --- Counter animation on hero stats --- */
+    function animateCounter(el, target, suffix = '', duration = 1500) {
+      let start = 0;
+      const step = target / (duration / 16);
+      const timer = setInterval(() => {
+        start += step;
+        if (start >= target) {
+          el.textContent = target + suffix;
+          clearInterval(timer);
+        } else {
+          el.textContent = Math.floor(start) + suffix;
+        }
+      }, 16);
+    }
+
+    // Trigger counters once hero is in view
+    const statNums = document.querySelectorAll('.stat-num');
+    const heroObs  = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        animateCounter(statNums[0], 97, '%');
+        heroObs.disconnect();
+      }
+    }, { threshold: 0.5 });
+    heroObs.observe(document.getElementById('hero'));
+  </script>
+
+</body>
+</html>
